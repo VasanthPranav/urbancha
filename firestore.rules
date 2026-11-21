@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Every phone signs in with the shop's account. All data lives under
+// shops/{uid}, and only that account can read or write it.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /shops/{shopId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == shopId;
+    }
+  }
+}

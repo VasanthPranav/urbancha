@@ -1,0 +1,12 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.DS_Store
+captures/
+.kotlin/
+# Firebase config for your own project — download it from the Firebase console
+app/google-services.json
+# The repo root ignores every data/ folder; keep the app's Kotlin data package.
+!app/src/**/data/
