@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "104108599017",
+    "project_id": "urbancha-62e23",
+    "storage_bucket": "urbancha-62e23.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:104108599017:android:969d46876204bf0f5e7278",
+        "android_client_info": {
+          "package_name": "com.urbancha.inventory"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOmwbIjRhV-I9dN2MMrfSGAYhJLxl5UoY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
