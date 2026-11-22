@@ -121,6 +121,7 @@ fun StockScreen(vm: AppViewModel, go: (Screen) -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(m.name, fontWeight = FontWeight.Bold)
+                            if (m.cost > 0) Text("₹${fmtQty(m.cost)} per ${m.unit}", color = Muted, fontSize = 12.sp)
                             if (m.lowAlert > 0) Text("Warn below ${fmtQty(m.lowAlert)} ${m.unit}", color = Muted, fontSize = 12.sp)
                         }
                         Text("${fmtQty(m.qty)} ${m.unit}", fontWeight = FontWeight.ExtraBold, color = if (m.isLow) Danger else TeaGreen)
@@ -140,8 +141,8 @@ fun StockScreen(vm: AppViewModel, go: (Screen) -> Unit) {
         MaterialDialog(
             existing = editing,
             onDismiss = { adding = false; editing = null },
-            onSave = { name, unit, q, alert ->
-                vm.saveMaterial(editing?.id, name, unit, q, alert)
+            onSave = { name, unit, q, alert, cost ->
+                vm.saveMaterial(editing?.id, name, unit, q, alert, cost)
                 adding = false; editing = null
             },
             onDelete = editing?.let { m -> { vm.deleteMaterial(m.id); editing = null } },
@@ -160,19 +161,20 @@ private fun quickSteps(unit: String): List<Double> = when (unit) {
 private fun MaterialDialog(
     existing: Material?,
     onDismiss: () -> Unit,
-    onSave: (name: String, unit: String, qty: Double?, lowAlert: Double) -> Unit,
+    onSave: (name: String, unit: String, qty: Double?, lowAlert: Double, cost: Double) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
     var name by remember { mutableStateOf(existing?.name ?: "") }
     var unit by remember { mutableStateOf(existing?.unit ?: "g") }
     var qty by remember { mutableStateOf(existing?.let { fmtQty(it.qty) } ?: "") }
     var alert by remember { mutableStateOf(existing?.lowAlert?.takeIf { it > 0 }?.let { fmtQty(it) } ?: "") }
+    var cost by remember { mutableStateOf(existing?.cost?.takeIf { it > 0 }?.let { fmtQty(it) } ?: "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (existing == null) "New raw material" else "Edit ${existing.name}") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(name, { name = it }, label = { Text("Name (e.g. Ginger)") }, singleLine = true)
                 Text("Measured in", fontWeight = FontWeight.Bold, color = Muted)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -180,6 +182,12 @@ private fun MaterialDialog(
                 }
                 NumberField(qty, { qty = it }, label = if (existing == null) "In stock now" else "Correct stock to", suffix = unit)
                 NumberField(alert, { alert = it }, label = "Warn me below (optional)", suffix = unit)
+                NumberField(
+                    cost, { cost = it },
+                    label = "Cost per $unit (optional)",
+                    suffix = "₹/$unit",
+                    supportingText = "Used by Analytics to work out raw-material cost as a % of sales.",
+                )
             }
         },
         confirmButton = {
@@ -188,7 +196,7 @@ private fun MaterialDialog(
                     val newQty = qty.toDoubleOrNull()
                     // Only overwrite stock when it was changed, so a sale on another phone is not undone.
                     val qtyToSave = if (existing != null && fmtQty(existing.qty) == qty) null else (newQty ?: if (existing == null) 0.0 else null)
-                    onSave(name.trim(), unit, qtyToSave, alert.toDoubleOrNull() ?: 0.0)
+                    onSave(name.trim(), unit, qtyToSave, alert.toDoubleOrNull() ?: 0.0, cost.toDoubleOrNull() ?: 0.0)
                 },
                 enabled = name.isNotBlank(),
             ) { Text("Save") }

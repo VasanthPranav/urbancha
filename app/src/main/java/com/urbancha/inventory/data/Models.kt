@@ -15,6 +15,8 @@ data class Material(
     val unit: String,
     val qty: Double,
     val lowAlert: Double = 0.0,
+    /** Rupees per [unit] (e.g. ₹50 per L of milk). 0 = not set. Used by Analytics. */
+    val cost: Double = 0.0,
 ) {
     val isLow: Boolean get() = lowAlert > 0 && qty <= lowAlert
 }

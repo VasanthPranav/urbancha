@@ -13,6 +13,7 @@ synced live across every phone that signs in to the shop account.
 | **Opening stock** | At 3 PM: carries last shift's stock forward, add what arrived, start the shift |
 | **Close shift** | At 3 AM: In (opening + restocks) / Used / Left, type the real count, mismatches shown in red |
 | **Reports** | Any past shift with ‹ › arrows: totals, products sold, stock used, latest bills, share as text (WhatsApp) |
+| **Analytics** | 1 / 7 / 30 / 90 days, in ₹ or %: sales vs the previous period, daily sales, Cash vs UPI, raw-material cost and margin (from closed shifts), product share, days of stock left, missing cups/buns |
 | **Products** | Name + price only. Optionally "each one sold uses 1 cup/bun" so that stock goes down automatically |
 
 ### The business day
@@ -25,7 +26,7 @@ Data is stored in **Cloud Firestore** under `shops/{account id}`:
 
 ```
 shops/{uid}/products/{id}       name, price, stockItemId
-shops/{uid}/materials/{id}      name, unit, qty (live stock), lowAlert
+shops/{uid}/materials/{id}      name, unit, qty (live stock), lowAlert, cost (₹ per unit, optional)
 shops/{uid}/shifts/{yyyy-MM-dd} status, opening, restocked, closing, salesTotal, cashTotal, upiTotal,
                                 billCount, itemCount, items.{productId}.{name,qty,amount}
                     /sales/{id}     one document per bill

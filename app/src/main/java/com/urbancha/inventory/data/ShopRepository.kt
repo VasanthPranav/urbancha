@@ -1,6 +1,7 @@
 package com.urbancha.inventory.data
 
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -47,6 +48,17 @@ class ShopRepository(private val db: FirebaseFirestore, shopId: String) {
         val reg = shifts.document(shiftId).addSnapshotListener { snap, _ ->
             trySend(if (snap != null && snap.exists()) snap.toShift() else Shift(shiftId))
         }
+        awaitClose { reg.remove() }
+    }
+
+    /** Every shift document from [firstId] to [lastId] inclusive. Shift ids are dates, so id order = date order. */
+    fun shiftRange(firstId: String, lastId: String): Flow<List<Shift>> = callbackFlow {
+        val reg = shifts
+            .whereGreaterThanOrEqualTo(FieldPath.documentId(), firstId)
+            .whereLessThanOrEqualTo(FieldPath.documentId(), lastId)
+            .addSnapshotListener { snap, _ ->
+                if (snap != null) trySend(snap.documents.map { it.toShift() })
+            }
         awaitClose { reg.remove() }
     }
 
@@ -184,9 +196,9 @@ class ShopRepository(private val db: FirebaseFirestore, shopId: String) {
         batch.commit()
     }
 
-    fun saveMaterial(id: String?, name: String, unit: String, qty: Double?, lowAlert: Double) {
+    fun saveMaterial(id: String?, name: String, unit: String, qty: Double?, lowAlert: Double, cost: Double) {
         val ref = if (id == null) materials.document() else materials.document(id)
-        val data = mutableMapOf<String, Any>("name" to name, "unit" to unit, "lowAlert" to lowAlert)
+        val data = mutableMapOf<String, Any>("name" to name, "unit" to unit, "lowAlert" to lowAlert, "cost" to cost)
         if (qty != null) data["qty"] = qty
         ref.set(data, SetOptions.merge())
     }
@@ -246,6 +258,7 @@ class ShopRepository(private val db: FirebaseFirestore, shopId: String) {
         unit = getString("unit") ?: "",
         qty = num("qty"),
         lowAlert = num("lowAlert"),
+        cost = num("cost"),
     )
 
     @Suppress("UNCHECKED_CAST")

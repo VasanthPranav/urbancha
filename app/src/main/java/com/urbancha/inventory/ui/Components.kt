@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -28,10 +29,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.urbancha.inventory.ui.theme.ChipBg
 import com.urbancha.inventory.ui.theme.Line
+import com.urbancha.inventory.ui.theme.SurfaceBg
 import com.urbancha.inventory.ui.theme.Muted
 import com.urbancha.inventory.ui.theme.TeaGreen
 
@@ -54,12 +59,13 @@ fun Header(title: String, subtitle: String? = null, onBack: (() -> Unit)? = null
 }
 
 @Composable
-fun Panel(modifier: Modifier = Modifier, container: Color = Color.White, content: @Composable ColumnScope.() -> Unit) {
+fun Panel(modifier: Modifier = Modifier, container: Color = SurfaceBg, content: @Composable ColumnScope.() -> Unit) {
+    val plain = container == SurfaceBg
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = container),
-        border = if (container == Color.White) BorderStroke(1.dp, Line) else null,
+        border = if (plain) BorderStroke(1.dp, Line) else null,
     ) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = content) }
 }
 
@@ -76,7 +82,10 @@ fun Pill(label: String, selected: Boolean, onClick: () -> Unit) {
         onClick = onClick,
         label = { Text(label, fontWeight = FontWeight.Bold) },
         shape = RoundedCornerShape(999.dp),
+        border = null,
         colors = FilterChipDefaults.filterChipColors(
+            containerColor = ChipBg,
+            labelColor = MaterialTheme.colorScheme.onSurface,
             selectedContainerColor = TeaGreen,
             selectedLabelColor = Color.White,
         ),
@@ -85,14 +94,24 @@ fun Pill(label: String, selected: Boolean, onClick: () -> Unit) {
 
 /** Decimal-number text field. Keeps the raw text so the user can type "2." on the way to "2.5". */
 @Composable
-fun NumberField(value: String, onChange: (String) -> Unit, label: String? = null, suffix: String? = null, modifier: Modifier = Modifier) {
+fun NumberField(
+    value: String,
+    onChange: (String) -> Unit,
+    label: String? = null,
+    suffix: String? = null,
+    modifier: Modifier = Modifier,
+    supportingText: String? = null,
+) {
+    val focusManager = LocalFocusManager.current
     OutlinedTextField(
         value = value,
         onValueChange = { v -> if (v.isEmpty() || v.matches(Regex("""\d*\.?\d*"""))) onChange(v) },
         label = label?.let { { Text(it) } },
         suffix = suffix?.let { { Text(it, color = Muted) } },
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+        supportingText = supportingText?.let { { Text(it) } },
         shape = RoundedCornerShape(12.dp),
         modifier = modifier,
     )

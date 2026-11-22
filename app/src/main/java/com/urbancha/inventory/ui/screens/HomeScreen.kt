@@ -14,6 +14,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
@@ -33,6 +37,7 @@ import com.urbancha.inventory.data.ShiftClock
 import com.urbancha.inventory.data.fmtQty
 import com.urbancha.inventory.data.fmtRupees
 import com.urbancha.inventory.ui.AppViewModel
+import com.urbancha.inventory.ui.LocalPrefs
 import com.urbancha.inventory.ui.Panel
 import com.urbancha.inventory.ui.Screen
 import com.urbancha.inventory.ui.SectionTitle
@@ -42,7 +47,10 @@ import com.urbancha.inventory.ui.theme.Muted
 import com.urbancha.inventory.ui.theme.Saffron
 import com.urbancha.inventory.ui.theme.TeaGreen
 import com.urbancha.inventory.ui.theme.TeaGreenSoft
+import com.urbancha.inventory.ui.theme.SurfaceBg
+import com.urbancha.inventory.ui.theme.ThemeMode
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(vm: AppViewModel, go: (Screen) -> Unit) {
     val shift by vm.currentShift.collectAsState()
@@ -131,6 +139,26 @@ fun HomeScreen(vm: AppViewModel, go: (Screen) -> Unit) {
         Panel(container = TeaGreenSoft) {
             Text("Synced live: every phone signed in to this shop sees the same numbers. Works offline too — changes upload when the internet is back.",
                 color = TeaGreen, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        }
+
+        // Appearance (this phone only).
+        val prefs = LocalPrefs.current
+        Panel {
+            Text("Appearance", fontWeight = FontWeight.ExtraBold)
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                ThemeMode.entries.forEachIndexed { i, mode ->
+                    SegmentedButton(
+                        selected = prefs.theme == mode,
+                        onClick = { prefs.theme = mode },
+                        shape = SegmentedButtonDefaults.itemShape(i, ThemeMode.entries.size),
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = TeaGreenSoft,
+                            activeContentColor = TeaGreen,
+                            inactiveContainerColor = SurfaceBg,
+                        ),
+                    ) { Text(mode.label, fontWeight = FontWeight.Bold) }
+                }
+            }
         }
     }
 }

@@ -3,6 +3,14 @@ package com.urbancha.inventory.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +22,7 @@ import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.LocalCafe
+import androidx.compose.material.icons.outlined.PieChart
 import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,6 +49,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.urbancha.inventory.ui.screens.AnalyticsScreen
 import com.urbancha.inventory.ui.screens.CloseShiftScreen
 import com.urbancha.inventory.ui.screens.HomeScreen
 import com.urbancha.inventory.ui.screens.OpeningStockScreen
@@ -47,6 +57,7 @@ import com.urbancha.inventory.ui.screens.ProductsScreen
 import com.urbancha.inventory.ui.screens.ReportsScreen
 import com.urbancha.inventory.ui.screens.SellScreen
 import com.urbancha.inventory.ui.screens.StockScreen
+import com.urbancha.inventory.ui.theme.SurfaceBg
 import com.urbancha.inventory.ui.theme.TeaGreen
 
 enum class Screen(val label: String, val icon: ImageVector?) {
@@ -54,11 +65,13 @@ enum class Screen(val label: String, val icon: ImageVector?) {
     Sell("Sell", Icons.AutoMirrored.Outlined.ReceiptLong),
     Stock("Stock", Icons.Outlined.Inventory2),
     Reports("Reports", Icons.Outlined.BarChart),
+    Analytics("Analytics", Icons.Outlined.PieChart),
     Products("Products", Icons.Outlined.LocalCafe),
     Opening("Opening stock", null),
     Close("Close shift", null),
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun UrbanChaApp(vm: AppViewModel = viewModel()) {
     val user by vm.user.collectAsState()
@@ -71,27 +84,31 @@ fun UrbanChaApp(vm: AppViewModel = viewModel()) {
     val go: (Screen) -> Unit = { screen = it }
     BackHandler(enabled = screen != Screen.Home) { screen = Screen.Home }
 
+    // While the keyboard is open, hide the tabs so they can't sit on top of the form being typed into.
+    val keyboardOpen = WindowInsets.isImeVisible
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+            if (!keyboardOpen) NavigationBar(containerColor = SurfaceBg) {
                 Screen.entries.filter { it.icon != null }.forEach { s ->
                     NavigationBarItem(
                         selected = screen == s,
                         onClick = { screen = s },
                         icon = { Icon(s.icon!!, contentDescription = null) },
-                        label = { Text(s.label, fontWeight = FontWeight.Bold) },
+                        label = { Text(s.label, fontWeight = FontWeight.Bold, fontSize = 11.sp, maxLines = 1) },
                     )
                 }
             }
         },
     ) { inner ->
-        Box(Modifier.padding(inner).fillMaxSize()) {
+        Box(Modifier.padding(inner).consumeWindowInsets(inner).imePadding().fillMaxSize()) {
             when (screen) {
                 Screen.Home -> HomeScreen(vm, go)
                 Screen.Sell -> SellScreen(vm)
                 Screen.Stock -> StockScreen(vm, go)
                 Screen.Reports -> ReportsScreen(vm)
+                Screen.Analytics -> AnalyticsScreen(vm)
                 Screen.Products -> ProductsScreen(vm)
                 Screen.Opening -> OpeningStockScreen(vm, onDone = { screen = Screen.Home })
                 Screen.Close -> CloseShiftScreen(vm, onDone = { screen = Screen.Reports })
@@ -108,8 +125,9 @@ private fun SignInScreen(vm: AppViewModel) {
     val busy by vm.authBusy.collectAsState()
     val error by vm.authError.collectAsState()
 
+    // Scrolls, and pads for the keyboard, so the keyboard can't squeeze the form.
     Column(
-        Modifier.fillMaxSize().padding(24.dp),
+        Modifier.fillMaxSize().systemBarsPadding().imePadding().verticalScroll(rememberScrollState()).padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically),
     ) {
         Text("Urban Cha", fontSize = 34.sp, fontWeight = FontWeight.ExtraBold, color = TeaGreen)

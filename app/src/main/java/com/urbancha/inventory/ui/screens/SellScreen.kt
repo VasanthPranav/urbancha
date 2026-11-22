@@ -47,6 +47,7 @@ import com.urbancha.inventory.ui.Panel
 import com.urbancha.inventory.ui.theme.Line
 import com.urbancha.inventory.ui.theme.Muted
 import com.urbancha.inventory.ui.theme.SaffronText
+import com.urbancha.inventory.ui.theme.SurfaceBg
 import com.urbancha.inventory.ui.theme.TeaGreen
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.LaunchedEffect
@@ -104,7 +105,7 @@ fun SellScreen(vm: AppViewModel) {
         ) {
             items(products, key = { it.id }) { p ->
                 val q = cart[p.id] ?: 0
-                Surface(shape = RoundedCornerShape(14.dp), color = Color.White, border = BorderStroke(1.dp, if (q > 0) TeaGreen else Line)) {
+                Surface(shape = RoundedCornerShape(14.dp), color = SurfaceBg, border = BorderStroke(1.dp, if (q > 0) TeaGreen else Line)) {
                     Row(Modifier.padding(start = 14.dp, end = 8.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(p.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -122,7 +123,7 @@ fun SellScreen(vm: AppViewModel) {
             }
         }
 
-        Surface(color = Color.White, shadowElevation = 8.dp) {
+        Surface(color = SurfaceBg, shadowElevation = 8.dp) {
             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(saved ?: "$count items", color = if (saved != null) TeaGreen else Muted, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))

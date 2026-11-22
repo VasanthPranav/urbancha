@@ -92,6 +92,8 @@ class AppViewModel : ViewModel() {
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun shift(id: String): Flow<Shift> = repo.flatMapLatest { it?.shift(id) ?: flowOf(Shift(id)) }
+    fun shiftRange(firstId: String, lastId: String): Flow<List<Shift>> =
+        repo.flatMapLatest { it?.shiftRange(firstId, lastId) ?: flowOf(emptyList()) }
     fun bills(id: String): Flow<List<Bill>> = repo.flatMapLatest { it?.bills(id) ?: flowOf(emptyList()) }
     fun restocks(id: String): Flow<List<Restock>> = repo.flatMapLatest { it?.restocks(id) ?: flowOf(emptyList()) }
 
@@ -101,8 +103,8 @@ class AppViewModel : ViewModel() {
     fun startShift(received: Map<String, Double>) = repo.value?.startShift(materials.value, received)
     fun restock(m: Material, qty: Double) = repo.value?.restock(m, qty)
     fun closeShift(counted: Map<String, Double>) = repo.value?.closeShift(closableShift.value, materials.value, counted)
-    fun saveMaterial(id: String?, name: String, unit: String, qty: Double?, lowAlert: Double) =
-        repo.value?.saveMaterial(id, name, unit, qty, lowAlert)
+    fun saveMaterial(id: String?, name: String, unit: String, qty: Double?, lowAlert: Double, cost: Double) =
+        repo.value?.saveMaterial(id, name, unit, qty, lowAlert, cost)
     fun deleteMaterial(id: String) = repo.value?.deleteMaterial(id)
     fun saveProduct(id: String?, name: String, price: Double, stockItemId: String?) =
         repo.value?.saveProduct(id, name, price, stockItemId)
